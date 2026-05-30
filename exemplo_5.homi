@@ -1,0 +1,5 @@
+Automacao "Rotina de Bom Dia"
+Quando tempo = 07:00
+Entao switch.cafeteira.turn_on();
+      light.quarto.turn_on();
+Fim

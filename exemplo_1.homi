@@ -1,0 +1,4 @@
+Automacao "Desligar luzes à meia-noite"
+Quando tempo = 00:00
+Entao light.casa_toda.turn_off();
+Fim

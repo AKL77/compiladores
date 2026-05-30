@@ -1,0 +1,6 @@
+Automacao "Segurança noturna do jardim"
+Quando sensor.porta_fundos == on
+Se sensor.luminosidade_externa < 15
+Entao light.holofote_jardim.turn_on();
+      switch.alarme_sonoro.turn_on();
+Fim

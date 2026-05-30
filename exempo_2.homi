@@ -1,0 +1,5 @@
+Automacao "Ligar ar condicionado no fim da tarde"
+Quando tempo = 18:00
+Se sensor.temperatura_quarto > 25
+Entao switch.ar_condicionado.turn_on();
+Fim

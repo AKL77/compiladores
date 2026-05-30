@@ -1,0 +1,4 @@
+Automacao "Acender luz ao detetar movimento"
+Quando sensor.movimento_corredor == on
+Entao light.corredor.turn_on();
+Fim
