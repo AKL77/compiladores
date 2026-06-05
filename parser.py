@@ -37,18 +37,30 @@ def p_gatilho_tempo(p):
     p[0] = {'node': 'gatilho_tempo', 'valor': p[3]}
 
 # ------------------------------------------------------------
-# 4. Bloco Se (Condições)
+# 4. Bloco Se (Condições Múltiplas)
 # ------------------------------------------------------------
 def p_se(p):
-    '''se : SE condicao'''
+    '''se : SE condicoes'''
     p[0] = p[2]
 
+# Regra recursiva: permite "condicao E condicao OU condicao"
+def p_condicoes(p):
+    '''condicoes : condicao E condicoes
+                 | condicao OU condicoes
+                 | condicao'''
+    if len(p) == 4:
+        p[0] = {'node': 'operacao_logica', 'esq': p[1], 'operador': p[2], 'dir': p[3]}
+    else:
+        p[0] = p[1]
+
 def p_condicao(p):
-    '''condicao : ENTITY_ID OP_RELACIONAL NUMERO'''
+    '''condicao : ENTITY_ID OP_RELACIONAL NUMERO
+                | ENTITY_ID OP_RELACIONAL ESTADO
+                | ENTITY_ID OP_RELACIONAL STRING'''
     p[0] = {'node': 'condicao', 'entidade': p[1], 'operador': p[2], 'valor': p[3]}
 
 # ------------------------------------------------------------
-# 5. Bloco Entao (Ações)
+# 5. Bloco Entao (Ações com Parâmetros)
 # ------------------------------------------------------------
 def p_entao(p):
     '''entao : ENTAO acoes'''
@@ -63,25 +75,39 @@ def p_acoes_lista(p):
         p[0] = [p[1]]
 
 def p_acao(p):
-    '''acao : ENTITY_ID PONTO SERVICO ABRE_PAR FECHA_PAR PONTO_VIRGULA'''
-    p[0] = {'node': 'acao', 'entidade': p[1], 'servico': p[3]}
+    '''acao : ENTITY_ID PONTO SERVICO ABRE_PAR parametro FECHA_PAR PONTO_VIRGULA'''
+    p[0] = {'node': 'acao', 'entidade': p[1], 'servico': p[3], 'parametro': p[5]}
+
+# Define o que pode ser um parâmetro
+def p_parametro(p):
+    '''parametro : NUMERO
+                 | STRING
+                 | TEMPO
+                 | empty'''
+    p[0] = p[1]
+
+# Regra auxiliar para parênteses vazios ()
+def p_empty(p):
+    'empty :'
+    pass
 
 # ------------------------------------------------------------
 # 6. Tratamento de Erros e Recuperação (Modo Pânico)
 # ------------------------------------------------------------
 def p_error(p):
     if p:
-        print(f"[ERRO SINTÁTICO] Token inesperado '{p.value}' na linha {p.lineno}.")
-        print("A iniciar Modo Pânico: a ignorar tokens até encontrar um ponto de sincronização...")
-        
-        # O parser descarta tokens até encontrar um delimitador seguro (como ; ou FIM)
+        print(f"[ERRO SINTÁTICO] Token inesperado '{p.value}' (tipo: {p.type}) na linha {p.lineno}.")
+        print("  >> Modo Pânico ativado: descartando tokens até ';' ou 'Fim'...")
+
+        # Descarta tokens até encontrar um ponto de sincronização seguro
         while True:
             tok = parser.token()
-            if not tok or tok.type in ['PONTO_VIRGULA', 'FIM']:
+            if not tok or tok.type in ('PONTO_VIRGULA', 'FIM'):
                 break
+
         parser.restart()
     else:
-        print("[ERRO SINTÁTICO] Fim de ficheiro inesperado. Esqueceu-se de fechar com 'Fim'?")
+        print("[ERRO SINTÁTICO] Fim de arquivo inesperado. O programa deve terminar com 'Fim'.")
 
 # Constrói o analisador sintático
 parser = yacc.yacc()
@@ -90,21 +116,34 @@ parser = yacc.yacc()
 # Bloco de Teste
 # ------------------------------------------------------------
 if __name__ == '__main__':
-    codigo_teste = """
-    Automacao "Ligar luz da sala"
-    Quando tempo = 18:00
-    Se sensor.luminosidade < 30
-    Entao light.sala.turn_on();
+    import pprint
+
+    # Teste válido com múltiplas ações e condições compostas
+    codigo_valido = """
+    Automacao "Modo Cinema"
+    Quando tempo = 20:00
+    Se sensor.luminosidade < 10 E sensor.tv == on
+    Entao media_player.sala.volume_set(0.11);
+        light.sanca.turn_off();
+        media_player.sala.delay(4min);
     Fim
     """
-    
-    print("--- INICIANDO ANÁLISE SINTÁTICA ---")
-    
-    # Chama o parser passando a string e o lexer
-    ast = parser.parse(codigo_teste, lexer=lexer)
-    
-    # Imprime a árvore formatada
-    import pprint
+
+    # Teste com erro sintático (falta o ponto e vírgula)
+    codigo_com_erro = """
+    Automacao "Teste Erro"
+    Quando tempo = 08:00
+    Entao light.sala.turn_on()
+        light.quarto.turn_off();
+    Fim
+    """
+
+    print("--- TESTE 1: CÓDIGO VÁLIDO ---")
+    ast = parser.parse(codigo_valido, lexer=lexer)
     pprint.pprint(ast, sort_dicts=False)
-    
+
+    print("\n--- TESTE 2: CÓDIGO COM ERRO SINTÁTICO ---")
+    ast2 = parser.parse(codigo_com_erro, lexer=lexer)
+    pprint.pprint(ast2, sort_dicts=False)
+
     print("--- FIM DA ANÁLISE ---")
