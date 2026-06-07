@@ -1,8 +1,6 @@
-# ------------------------------------------------------------
 # Tabela de Símbolos
 # Armazena as entidades encontradas na AST com seus domínios
 # e tipos esperados, permitindo verificação de tipos e escopo.
-# ------------------------------------------------------------
 class TabelaDeSimbolos:
     def __init__(self):
         # Cada entrada: { 'dominio': str, 'tipo': str }
@@ -30,9 +28,7 @@ class TabelaDeSimbolos:
         return "\n".join(linhas)
 
 
-# ------------------------------------------------------------
 # Definições estáticas de domínios conhecidos
-# ------------------------------------------------------------
 
 # Serviços permitidos por domínio
 SERVICOS_PERMITIDOS = {
@@ -60,9 +56,7 @@ SERVICOS_REQUEREM_TEMPO = {'delay'}
 SERVICOS_SEM_PARAMETRO = {'turn_on', 'turn_off', 'toggle', 'play_media'}
 
 
-# ------------------------------------------------------------
 # Analisador Semântico
-# ------------------------------------------------------------
 class AnalisadorSemantico:
     def __init__(self):
         self.erros = []
@@ -75,9 +69,6 @@ class AnalisadorSemantico:
         self._visitar(ast)
         return self.erros
 
-    # ----------------------------------------------------------
-    # Visitor genérico — percorre a AST recursivamente
-    # ----------------------------------------------------------
     def _visitar(self, nodo):
         if isinstance(nodo, dict):
             tipo = nodo.get('node')
@@ -111,9 +102,6 @@ class AnalisadorSemantico:
             for item in nodo:
                 self._visitar(item)
 
-    # ----------------------------------------------------------
-    # Registra entidade na tabela de símbolos
-    # ----------------------------------------------------------
     def _registrar_entidade(self, entidade: str):
         if not entidade:
             return
@@ -121,9 +109,6 @@ class AnalisadorSemantico:
         tipo = TIPO_POR_DOMINIO.get(dominio, 'desconhecido')
         self.tabela.registrar(entidade, dominio, tipo)
 
-    # ----------------------------------------------------------
-    # Verificação semântica de condições
-    # ----------------------------------------------------------
     def _verificar_condicao(self, nodo):
         entidade = nodo.get('entidade', '')
         operador = nodo.get('operador', '')
@@ -132,7 +117,6 @@ class AnalisadorSemantico:
         self._registrar_entidade(entidade)
         dominio = entidade.split('.')[0]
 
-        # Sensores: operadores relacionais numéricos são OK; estado (on/off) não faz sentido
         if dominio == 'sensor':
             if isinstance(valor, str) and valor in ('on', 'off'):
                 self.erros.append(
@@ -148,9 +132,6 @@ class AnalisadorSemantico:
                     f"(on/off) e não pode ser comparado numericamente com '{valor}'."
                 )
 
-    # ----------------------------------------------------------
-    # Verificação semântica de ações
-    # ----------------------------------------------------------
     def _verificar_acao(self, nodo):
         entidade = nodo.get('entidade', '')
         servico  = nodo.get('servico', '')
@@ -182,16 +163,15 @@ class AnalisadorSemantico:
             )
             return
 
-        # 4. Verificação de tipos do parâmetro
 
-        # 4a. Serviços que NÃO devem ter parâmetro
+        # Serviços que NÃO devem ter parâmetro
         if servico in SERVICOS_SEM_PARAMETRO and parametro is not None:
             self.erros.append(
                 f"[ERRO SEMÂNTICO] Serviço '{servico}' não aceita parâmetros, "
                 f"mas recebeu '{parametro}'."
             )
 
-        # 4b. Serviços que exigem número (float/int)
+        # Serviços que exigem número (float/int)
         elif servico in SERVICOS_REQUEREM_NUMERO:
             if parametro is None:
                 self.erros.append(
@@ -210,7 +190,7 @@ class AnalisadorSemantico:
                     f"mas recebeu '{parametro}'."
                 )
 
-        # 4c. Serviços que exigem tempo (string como '4min', '10s', '1h')
+        # Serviços que exigem tempo (string como '4min', '10s', '1h')
         elif servico in SERVICOS_REQUEREM_TEMPO:
             if parametro is None:
                 self.erros.append(
@@ -224,68 +204,66 @@ class AnalisadorSemantico:
                 )
 
 
-# ------------------------------------------------------------
-# Bloco de Teste Integrado
-# ------------------------------------------------------------
-if __name__ == '__main__':
-    from parser import parser, lexer
 
-    casos = {
-        "VÁLIDO — automação completa": """
-            Automacao "Modo Cinema"
-            Quando tempo = 20:00
-            Se sensor.luminosidade < 10 E sensor.tv == on
-            Entao media_player.sala.volume_set(0.8);
-                light.sanca.turn_off();
-                media_player.sala.delay(4min);
-            Fim
-        """,
-        "ERRO — sensor como ação": """
-            Automacao "Erro sensor"
-            Quando tempo = 08:00
-            Entao sensor.temperatura.turn_on();
-            Fim
-        """,
-        "ERRO — serviço incompatível": """
-            Automacao "Erro serviço"
-            Quando tempo = 08:00
-            Entao light.sala.volume_set(0.5);
-            Fim
-        """,
-        "ERRO — parâmetro inválido em turn_on": """
-            Automacao "Erro parametro"
-            Quando tempo = 08:00
-            Entao light.sala.turn_on(100);
-            Fim
-        """,
-        "ERRO — volume fora do range": """
-            Automacao "Erro volume"
-            Quando tempo = 08:00
-            Entao media_player.sala.volume_set(1.5);
-            Fim
-        """,
-        "ERRO — delay sem parâmetro de tempo": """
-            Automacao "Erro delay"
-            Quando tempo = 08:00
-            Entao media_player.sala.delay(42);
-            Fim
-        """,
-    }
+# if __name__ == '__main__':
+#     from parser import parser, lexer
 
-    analisador = AnalisadorSemantico()
+#     casos = {
+#         "VÁLIDO — automação completa": """
+#             Automacao "Modo Cinema"
+#             Quando tempo = 20:00
+#             Se sensor.luminosidade < 10 E sensor.tv == on
+#             Entao media_player.sala.volume_set(0.8);
+#                 light.sanca.turn_off();
+#                 media_player.sala.delay(4min);
+#             Fim
+#         """,
+#         "ERRO — sensor como ação": """
+#             Automacao "Erro sensor"
+#             Quando tempo = 08:00
+#             Entao sensor.temperatura.turn_on();
+#             Fim
+#         """,
+#         "ERRO — serviço incompatível": """
+#             Automacao "Erro serviço"
+#             Quando tempo = 08:00
+#             Entao light.sala.volume_set(0.5);
+#             Fim
+#         """,
+#         "ERRO — parâmetro inválido em turn_on": """
+#             Automacao "Erro parametro"
+#             Quando tempo = 08:00
+#             Entao light.sala.turn_on(100);
+#             Fim
+#         """,
+#         "ERRO — volume fora do range": """
+#             Automacao "Erro volume"
+#             Quando tempo = 08:00
+#             Entao media_player.sala.volume_set(1.5);
+#             Fim
+#         """,
+#         "ERRO — delay sem parâmetro de tempo": """
+#             Automacao "Erro delay"
+#             Quando tempo = 08:00
+#             Entao media_player.sala.delay(42);
+#             Fim
+#         """,
+#     }
 
-    for titulo, codigo in casos.items():
-        print(f"\n{'='*55}")
-        print(f"TESTE: {titulo}")
-        print('='*55)
-        ast = parser.parse(codigo, lexer=lexer)
-        erros = analisador.analisar(ast)
+#     analisador = AnalisadorSemantico()
 
-        print("Tabela de Símbolos registrada:")
-        print(analisador.tabela)
+#     for titulo, codigo in casos.items():
+#         print(f"\n{'='*55}")
+#         print(f"TESTE: {titulo}")
+#         print('='*55)
+#         ast = parser.parse(codigo, lexer=lexer)
+#         erros = analisador.analisar(ast)
 
-        if not erros:
-            print("✓ Análise semântica concluída SEM erros.")
-        else:
-            for e in erros:
-                print(e)    
+#         print("Tabela de Símbolos registrada:")
+#         print(analisador.tabela)
+
+#         if not erros:
+#             print("✓ Análise semântica concluída SEM erros.")
+#         else:
+#             for e in erros:
+#                 print(e)    

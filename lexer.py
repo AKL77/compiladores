@@ -17,16 +17,13 @@ t_ABRE_PAR      = r'\('
 t_FECHA_PAR     = r'\)'
 t_PONTO_VIRGULA = r';'
 
-# ------------------------------------------------------------
 # 3. Regras Complexas (Palavras-chave e Valores)
 #
 # ATENÇÃO — ORDEM IMPORTA NO PLY:
 #   O PLY ordena funções pelo tamanho do padrão regex (maior = maior prioridade).
 #   Tokens mais específicos (palavras-chave, ENTITY_ID, TEMPO) devem vir
 #   ANTES dos tokens genéricos (SERVICO, NUMERO) para não serem engolidos.
-# ------------------------------------------------------------
 
-# --- Palavras-chave da linguagem (maiúsculas iniciais) ---
 def t_AUTOMACAO(t):
     r'Automacao'
     return t
@@ -47,7 +44,6 @@ def t_FIM(t):
     r'Fim'
     return t
 
-# --- Operadores lógicos (palavras isoladas minúsculas) ---
 def t_E(t):
     r'(?<![.\w])[Ee](?![.\w])'
     return t
@@ -72,12 +68,12 @@ def t_PALAVRA_TEMPO(t):
     r'tempo'
     return t
 
-# prioridade, o lexer tokenizaria 'light' como SERVICO e '.sala' como PONTO + SERVICO)
+# Prioridade, o lexer tokenizaria 'light' como SERVICO e '.sala' como PONTO + SERVICO)
 def t_ENTITY_ID(t):
     r'[a-z_][a-z0-9_]*\.[a-z0-9_]+'
     return t
 
-# SERVICO: padrão genérico — deve ser o ÚLTIMO token alfabético
+# Padrão genérico — deve ser o ÚLTIMO token alfabético
 def t_SERVICO(t):
     r'[a-z_][a-z0-9_]*'
     return t
@@ -93,8 +89,6 @@ def t_STRING(t):
     t.value = t.value[1:-1] 
     return t
 
-
-#Um analisador léxico ignora espaços e linhas.
 # Tratamento de Comentários, Espaços e Linhas
 def t_COMENTARIO(t):
     r'\#.*'
@@ -102,7 +96,7 @@ def t_COMENTARIO(t):
 
 def t_newline(t):
     r'\n+'
-    t.lexer.lineno += len(t.value)  # Atualiza o contador de linhas
+    t.lexer.lineno += len(t.value)
 
 t_ignore = ' \t'  # Ignora espaços em branco e tabulações
 
@@ -114,25 +108,3 @@ def t_error(t):
 
 # Constrói o analisador léxico
 lexer = lex.lex()
-
-# ------------------------------------------------------------
-# 6. Bloco de Teste Executável
-# ------------------------------------------------------------
-if __name__ == '__main__':
-    codigo_teste = """
-    Automacao "Ligar luz da sala"
-    # Este é um comentário ignorado pelo lexer
-    Quando tempo = 18:00
-    Se sensor.luminosidade < 30 E switch.corredor == on
-    Entao light.sala.turn_on();
-        media_player.sala.volume_set(0.5);
-    Fim
-    @ # Isto deve gerar um erro léxico
-    """
-
-    print("--- INICIANDO ANÁLISE LÉXICA ---")
-    lexer.input(codigo_teste)
-
-    for token in lexer:
-        print(f"Linha {token.lineno}: Tipo={token.type:<15} Valor='{token.value}'")
-    print("--- FIM DA ANÁLISE ---")

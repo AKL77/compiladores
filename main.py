@@ -18,14 +18,14 @@ def compilar(caminho_arquivo):
     with open(caminho_arquivo, 'r', encoding='utf-8') as f:
         codigo_fonte = f.read()
 
-    # 1. Análise Sintática (Gera a AST e já embute a Análise Léxica)
+    # Análise Sintática (Gera a AST e já embute a Análise Léxica)
     ast = parser.parse(codigo_fonte, lexer=lexer)
     
     if not ast:
         print("Compilação abortada devido a erros sintáticos.")
         return
 
-    # 2. Análise Semântica
+    # Análise Semântica
     analisador = AnalisadorSemantico()
     erros = analisador.analisar(ast)
     
@@ -35,7 +35,7 @@ def compilar(caminho_arquivo):
             print(erro)
         return
         
-    # 3. Geração de Código
+    # Geração de Código
     gerador = GeradorYAML()
     yaml_final = gerador.gerar(ast)
     
