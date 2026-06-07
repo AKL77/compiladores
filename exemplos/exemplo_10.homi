@@ -1,0 +1,4 @@
+Automacao "Tipagem Incorreta"
+Quando tempo = 12:00
+Entao media_player.sala.volume_set(15min);
+Fim

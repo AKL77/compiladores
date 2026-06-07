@@ -1,0 +1,8 @@
+Automacao "Rotina matinal"
+Quando tempo = 06:30
+Entao media_player.quarto.volume_set(0.3);
+      media_player.quarto.turn_on();
+      light.quarto.turn_on();
+      media_player.quarto.delay(15min);
+      light.quarto.turn_off();
+Fim
