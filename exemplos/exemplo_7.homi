@@ -1,0 +1,10 @@
+Automacao "Simulacao de Presenca Noturna"
+Quando tempo = 19:30
+Se switch.alarme_ativado == on E sensor.luminosidade_externa < 20
+Entao light.sala.turn_on();
+      media_player.sala.volume_set(0.45);
+      media_player.sala.turn_on();
+      media_player.sala.delay(45min);
+      light.sala.turn_off();
+      media_player.sala.turn_off();
+Fim

@@ -1,0 +1,5 @@
+Automacao "Esqueci o ponto e virgula"
+Quando tempo = 08:00
+Entao light.quarto.turn_on()
+      switch.cafeteira.turn_on();
+Fim

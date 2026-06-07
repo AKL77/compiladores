@@ -1,0 +1,4 @@
+Automacao "Tentando ligar um sensor"
+Quando tempo = 08:00
+Entao sensor.temperatura.turn_on();
+Fim
